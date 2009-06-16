@@ -3,13 +3,17 @@
 Plugin Name: Search By Category
 Plugin URI: http://fire-studios.com/blog/search-by-category/
 Description: Reconfigures search results to display results based on category of posts.
-Version: 1.0.0
+Version: 1.1
 Author: Fire G
 Author URI: http://fire-studios.com/blog/
 */
 
 /* 
 Change log
+
+1.1
+ - Added security fixes
+ - Removed some excess code
 
 1.0.0
  - Default text
@@ -60,29 +64,16 @@ if ( ! class_exists( 'SBC_Admin' ) ) {
 
 		// prep options page insertion
 		function add_config_page() {
-			global $wpdb;
 			if ( function_exists('add_submenu_page') ) {
 				add_options_page('Search By Category Options', 'Search By Category', 10, basename(__FILE__), array('SBC_Admin','config_page'));
-				add_filter( 'plugin_action_links', array( 'SBC_Admin', 'filter_plugin_actions' ), 10, 2 );
-				add_filter( 'ozh_adminmenu_icon', array( 'SBC_Admin', 'add_ozh_adminmenu_icon' ) );
 			}
-		}
-
-		function filter_plugin_actions( $links, $file ){
-			//Static so we don't call plugin_basename on every plugin row.
-			static $this_plugin;
-			if ( ! $this_plugin ) $this_plugin = plugin_basename(__FILE__);
-			
-			if ( $file == $this_plugin ){
-				$settings_link = '<a href="options-general.php?page=search-by-category.php">' . __('Settings') . '</a>';
-				array_unshift( $links, $settings_link ); // before other links
-			}
-			return $links;
 		}
 
 		// Options/Settings page in WP-Admin
 		function config_page() {
 			if ( isset($_POST['submit']) ) {
+				$nonce = $_REQUEST['_wpnonce'];
+				if (! wp_verify_nonce($nonce, 'sbc-updatesettings') ) die('Security check failed'); 
 				if (!current_user_can('manage_options')) die(__('You cannot edit the search-by-category options.'));
 				check_admin_referer('sbc-updatesettings');
 				
@@ -108,13 +99,13 @@ if ( ! class_exists( 'SBC_Admin' ) ) {
 				if (empty($sbc_style)) $sbc_style = '0'; // 0 means false 
 				
 				// Update the DB with the new option values
-				update_option("sbc-focus", $focus);
-				update_option("sbc-hide-empty", $hide_empty);
-				update_option("sbc-selected-excluded", $raw_excluded_cats);
-				update_option("sbc-excluded-cats", $excluded_cats);
-				update_option("sbc-search-text", $search_text);
-				update_option("sbc-exclude-child", $exclude_child);
-				update_option("sbc-style", $sbc_style);
+				update_option("sbc-focus", mysql_real_escape_string($focus));
+				update_option("sbc-hide-empty", mysql_real_escape_string($hide_empty));
+				update_option("sbc-selected-excluded", mysql_real_escape_string($raw_excluded_cats));
+				update_option("sbc-excluded-cats", mysql_real_escape_string($excluded_cats));
+				update_option("sbc-search-text", mysql_real_escape_string($search_text));
+				update_option("sbc-exclude-child", mysql_real_escape_string($exclude_child));
+				update_option("sbc-style", mysql_real_escape_string($sbc_style));
 			}
 
 			$focus					= get_option("sbc-focus");
@@ -133,11 +124,11 @@ if ( ! class_exists( 'SBC_Admin' ) ) {
 						<?php if (function_exists('wp_nonce_field')) { wp_nonce_field('sbc-updatesettings'); } ?>
 						<tr>
 							<th scope="row" valign="top"><label for="search-text">Display text in the search box:</label></th>
-							<td><input type="text" name="search-text" id="search-text" value="<?php echo $search_text; ?>"/></td>
+							<td><input type="text" name="search-text" id="search-text" class="regular-text" value="<?php echo $search_text; ?>"/></td>
 						</tr>
 						<tr>
 							<th scope="row" valign="top"><label for="focus">Display text in drop-down selection:</label></th>
-							<td><input type="text" name="focus" id="focus" value="<?php echo $focus; ?>"/></td>
+							<td><input type="text" name="focus" id="focus" class="regular-text" value="<?php echo $focus; ?>"/></td>
 						</tr>
 						<tr>
 							<th scope="row" valign="top"><label for="hide-empty">Hide categories with no posts?</label></th>
@@ -149,7 +140,7 @@ if ( ! class_exists( 'SBC_Admin' ) ) {
 						</tr>
 						<tr>
 							<th scope="row" valign="top"><label for="sbc-style">Use the SBC Form styling?</label></th>
-							<td><input type="checkbox" name="sbc-style" id="sbc-style" value="1" <?php if ($sbc_style == '1') echo 'checked="checked"'; ?> /></td>
+							<td><input type="checkbox" name="sbc-style" id="sbc-style" value="1" <?php if ($sbc_style == '1') echo 'checked="checked"'; ?> /> <em>* Styling doesn't display correctly in IE7 and earlier *</em></td>
 						</tr>
 						<tr>
 							<th scope="row" valign="top"><label for="focus">Categories to exclude:</label></th>
@@ -166,9 +157,7 @@ if ( ! class_exists( 'SBC_Admin' ) ) {
 
 
 // Base function
-function sbc() {
-	global $wp_query, $post;
-	
+function sbc() {	
 	$focus					= get_option("sbc-focus");
 	$hide_empty				= get_option("sbc-hide-empty");
 	$excluded_cats			= get_option("sbc-excluded-cats");
@@ -222,16 +211,15 @@ function return_only_selected_category() {
 }
 
 if($sbc_style == '1'){
-// Add our styling
-function style_insert() {
-	$current_path = get_option('siteurl') .'/wp-content/plugins/' . basename(dirname(__FILE__)) .'/';
-	?>
-	<link href="<?php echo $current_path; ?>sbc-style.css" type="text/css" rel="stylesheet" />
-	<?php
-}
+	// Add our styling
+	function style_insert() {
+		$current_path = get_option('siteurl').'/wp-content/plugins/'.basename(dirname(__FILE__));
+		
+		echo '<link href="'.$current_path.'/sbc-style.css" type="text/css" rel="stylesheet" />';
+	}
 
-// insert custom stylesheet
-add_action('wp_head','style_insert');
+	// insert custom stylesheet
+	add_action('wp_head','style_insert');
 }
 
 // Highjack the search
