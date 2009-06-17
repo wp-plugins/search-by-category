@@ -18,11 +18,13 @@ To help users find the posts they're looking for faster, this plugin allows them
 2. activate the plugin within you WordPress Administration
 3. Go to Settings > Search By Category
 4. Use the following code in your Theme:
-`<?php if(function_exists('sbc')){ 
+<pre>
+&lt;?php if(function_exists('sbc')){ 
 	sbc();
-} else { ?>
+} else { ?&gt;
 	// Your regular form code goes here
-<?php } ?>`
+&lt;?php } ?&gt;
+</pre>
 
 == Screenshots ==
 
