@@ -3,13 +3,16 @@
 Plugin Name: Search By Category
 Plugin URI: http://fire-studios.com/blog/search-by-category/
 Description: Reconfigures search results to display results based on category of posts.
-Version: 1.1
+Version: 1.2
 Author: Fire G
 Author URI: http://fire-studios.com/blog/
 */
 
 /* 
 Change log
+
+1.2
+ - Included Shortcode: [sbc]
 
 1.1
  - Added security fixes
@@ -164,7 +167,7 @@ function sbc() {
 	$search_text			= get_option("sbc-search-text");
 	$exclude_child			= get_option("sbc-exclude-child");
 	
-	$settings = array('show_option_all' => $focus.' &nbsp; &nbsp; &nbsp; &nabla;',
+	$settings = array('show_option_all' => $focus,
 						'show_option_none' => '',
 						'orderby' => 'name', 
 						'order' => 'ASC',
@@ -227,4 +230,7 @@ add_filter('pre_get_posts', 'return_only_selected_category');
 
 // insert into admin panel
 add_action('admin_menu', array('SBC_Admin','add_config_page'));
+
+// Allow use of [sbc]
+add_shortcode('sbc', 'sbc');
 ?>
