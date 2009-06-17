@@ -17,3 +17,14 @@ To help users find the posts they're looking for faster, this plugin allows them
 1. Download, unzip and upload to your WordPress plugins directory
 2. activate the plugin within you WordPress Administration
 3. Go to Settings > Search By Category
+4. Use the following code in your Theme:
+`<?php if(function_exists('sbc')){ 
+	sbc();
+} else { ?>
+	// Your regular form code goes here
+<?php } ?>`
+
+== Screenshots ==
+
+1. SBC From with custom styling
+2. SBC config page
