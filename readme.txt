@@ -1,5 +1,5 @@
 === Search By Category ===
-Contributors: Fire G, David Leggett
+Contributors: Fire G
 Plugin link: http://fire-studios.com/blog/search-by-category/
 Tags: search, category, specify, results
 Requires at least: 2.5
@@ -12,7 +12,7 @@ Reconfigures search results to display results based off of category of posts.
 
 To help users find the posts they're looking for faster, this plugin allows them to search for articles or posts within certian categories, cutting back on the number of results the user needs to crawl through to find the article they want.
 
-*Change log*
+**Change log**
 
 _1.2_
  - Included Shortcode: [sbc]
@@ -55,6 +55,10 @@ Alpha 1
 } else { ?&gt;
 	// Your regular form code goes here
 &lt;?php } ?&gt;
+</pre>
+or
+<pre>
+[sbc]
 </pre>
 
 == Screenshots ==
