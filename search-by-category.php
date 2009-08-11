@@ -3,13 +3,16 @@
 Plugin Name: Search By Category
 Plugin URI: http://fire-studios.com/blog/search-by-category/
 Description: Reconfigures search results to display results based on category of posts.
-Version: 1.2
+Version: 1.2.1
 Author: Fire G
 Author URI: http://fire-studios.com/blog/
 */
 
 /* 
 Change log
+
+1.2.1
+ - Fixed settings saving error
 
 1.2
  - Included Shortcode: [sbc]
@@ -103,12 +106,12 @@ if ( ! class_exists( 'SBC_Admin' ) ) {
 				
 				// Update the DB with the new option values
 				update_option("sbc-focus", mysql_real_escape_string($focus));
-				update_option("sbc-hide-empty", mysql_real_escape_string($hide_empty));
-				update_option("sbc-selected-excluded", mysql_real_escape_string($raw_excluded_cats));
-				update_option("sbc-excluded-cats", mysql_real_escape_string($excluded_cats));
+				update_option("sbc-hide-empty", $hide_empty);
+				update_option("sbc-selected-excluded", $raw_excluded_cats);
+				update_option("sbc-excluded-cats", $excluded_cats);
 				update_option("sbc-search-text", mysql_real_escape_string($search_text));
-				update_option("sbc-exclude-child", mysql_real_escape_string($exclude_child));
-				update_option("sbc-style", mysql_real_escape_string($sbc_style));
+				update_option("sbc-exclude-child", $exclude_child);
+				update_option("sbc-style", $sbc_style);
 			}
 
 			$focus					= get_option("sbc-focus");
