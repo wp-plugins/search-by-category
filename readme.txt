@@ -3,8 +3,8 @@ Contributors: Fire G
 Plugin link: http://fire-studios.com/blog/search-by-category/
 Tags: search, category, specify, results
 Requires at least: 2.5.1
-Tested up to: 2.8.3
-Stable tag: 1.3
+Tested up to: 2.8.4
+Stable tag: 1.4
 
 Reconfigures search results to display results based off of category of posts.
 
@@ -14,7 +14,11 @@ To help users find the posts they're looking for faster, this plugin allows them
 
 **Change log**
 
-_1.3_
+_1.4_
+ - Search box retains searched value (by Manuel Razzari - http://ultimorender.com.ar/funkascript/)
+ - Default style usage on/off fix (by Manuel Razzari)
+
+1.3
  - Dropdown now automatically selects current category if viewing an archive
 
 1.2.1

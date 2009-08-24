@@ -3,13 +3,17 @@
 Plugin Name: Search By Category
 Plugin URI: http://fire-studios.com/blog/search-by-category/
 Description: Reconfigures search results to display results based on category of posts.
-Version: 1.3
+Version: 1.4
 Author: Fire G
 Author URI: http://fire-studios.com/blog/
 */
 
 /* 
 Change log
+
+1.4
+ - Search box retains searched value (by Manuel Razzari - http://ultimorender.com.ar/funkascript/)
+ - Default style usage on/off fix (by Manuel Razzari)
 
 1.3
  - Dropdown now automatically selects current category if viewing an archive
@@ -173,8 +177,14 @@ function sbc() {
 	$search_text			= get_option("sbc-search-text");
 	$exclude_child			= get_option("sbc-exclude-child");
 	
-	$cat_id = 0;
+
 	if(is_category() && !is_tag() && !is_author() && !is_date()) $cat_id = get_cat_id(single_cat_title('' , false));
+
+	if (is_search()) {
+		$cat_id = $_GET['cat'] ? $_GET['cat'] : 0;
+		$search_text_default = $search_text;
+		$search_text = $_GET['s'] ? trim($_GET['s']) : '';
+	}
 	
 	$settings = array('show_option_all' => $focus,
 						'show_option_none' => '',
@@ -222,6 +232,7 @@ function return_only_selected_category() {
 	}
 }
 
+$sbc_style = get_option("sbc-style");
 if($sbc_style == '1'){
 	// Add our styling
 	function style_insert() {
