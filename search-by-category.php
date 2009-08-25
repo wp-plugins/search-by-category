@@ -3,7 +3,7 @@
 Plugin Name: Search By Category
 Plugin URI: http://fire-studios.com/blog/search-by-category/
 Description: Reconfigures search results to display results based on category of posts.
-Version: 1.4
+Version: 1.4.1
 Author: Fire G
 Author URI: http://fire-studios.com/blog/
 */
@@ -11,8 +11,11 @@ Author URI: http://fire-studios.com/blog/
 /* 
 Change log
 
+1.4.1
+ - XSS security fix (by Manuel Razzari - http://ultimorender.com.ar/funkascript/)
+
 1.4
- - Search box retains searched value (by Manuel Razzari - http://ultimorender.com.ar/funkascript/)
+ - Search box retains searched value (by Manuel Razzari)
  - Default style usage on/off fix (by Manuel Razzari)
 
 1.3
@@ -175,15 +178,15 @@ function sbc() {
 	$hide_empty				= get_option("sbc-hide-empty");
 	$excluded_cats			= get_option("sbc-excluded-cats");
 	$search_text			= get_option("sbc-search-text");
+	$search_text_default 	= $search_text;
 	$exclude_child			= get_option("sbc-exclude-child");
 	
 
 	if(is_category() && !is_tag() && !is_author() && !is_date()) $cat_id = get_cat_id(single_cat_title('' , false));
 
 	if (is_search()) {
-		$cat_id = $_GET['cat'] ? $_GET['cat'] : 0;
-		$search_text_default = $search_text;
-		$search_text = $_GET['s'] ? trim($_GET['s']) : '';
+		$cat_id = $_GET['cat'] ? (int) $_GET['cat'] : 0;
+		$search_text = esc_attr(apply_filters('the_search_query', get_search_query()));
 	}
 	
 	$settings = array('show_option_all' => $focus,
@@ -208,7 +211,7 @@ function sbc() {
 	$form = <<< EOH
 	<div id="sbc">
 		<form method="get" id="sbc-search" action="{$blog_url}">
-			<input type="text" value="{$search_text}" name="s" id="s" onblur="if (this.value == '') {this.value = '{$search_text}';}"  onfocus="if (this.value == '{$search_text}') {this.value = '';}" />
+			<input type="text" value="{$search_text}" name="s" id="s" onblur="if (this.value == '') {this.value = '{$search_text_default}';}"  onfocus="if (this.value == '{$search_text_default}') {this.value = '';}" />
 			{$list}
 			<input type="submit" id="sbc-submit" value="Search" />
 		</form>

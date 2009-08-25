@@ -14,8 +14,11 @@ To help users find the posts they're looking for faster, this plugin allows them
 
 **Change log**
 
-_1.4_
- - Search box retains searched value (by Manuel Razzari - http://ultimorender.com.ar/funkascript/)
+_1.4.1_
+ - XSS security fix (by Manuel Razzari - http://ultimorender.com.ar/funkascript/)
+
+1.4
+ - Search box retains searched value (by Manuel Razzari)
  - Default style usage on/off fix (by Manuel Razzari)
 
 1.3
