@@ -3,13 +3,17 @@
 Plugin Name: Search By Category
 Plugin URI: http://fire-studios.com/blog/search-by-category/
 Description: Reconfigures search results to display results based on category of posts.
-Version: 1.4.1
+Version: 1.5
 Author: Fire G
 Author URI: http://fire-studios.com/blog/
 */
 
 /* 
 Change log
+
+1.5
+ - Converted options storage from seperate rows to one array
+ - Updated code to be more standardized and readable
 
 1.4.1
  - XSS security fix (by Manuel Razzari - http://ultimorender.com.ar/funkascript/)
@@ -56,22 +60,44 @@ Alpha 1
 */
 
 // Some Defaults
-$focus					= 'In All Categories';
-$hide_empty				= '1'; // 1 means true
-$excluded_cats			= array();
-$search_text			= 'Search For...';
-$exclude_child			= '0'; // 0 means false
-$raw_excluded_cats		= array();
-$sbc_style				= '1';
+global $SBC_settings;
+$SBC_settings                           = array();
+$SBC_settings['focus']					= 'In All Categories';
+$SBC_settings['hide_empty']				= '1'; // 1 means true
+$SBC_settings['excluded_cats']			= array();
+$SBC_settings['search_text']			= 'Search For...';
+$SBC_settings['exclude_child']			= '0'; // 0 means false
+$SBC_settings['raw_excluded_cats']		= array();
+$SBC_settings['sbc_style']				= '1';
 
-// Put our defaults in the "wp-options" table
-add_option("sbc-focus", $focus);
-add_option("sbc-hide-empty", $hide_empty);
-add_option("sbc-excluded-cats", $excluded_cats);
-add_option("sbc-search-text", $search_text);
-add_option("sbc-selected-excluded", $raw_excluded_cats);
-add_option("sbc-exclude-child", $exclude_child);
-add_option("sbc-style", $sbc_style);
+function sbc_activate(){
+    global $SBC_settings;
+    
+    if(!get_option('sbc-focus')) {
+        add_option("sbc-settings", $SBC_settings);
+    }
+    else {
+        // Upgrade from 1.x to 1.5
+        $SBC_settings['focus']					= get_option('sbc-focus');
+        $SBC_settings['hide_empty']				= get_option('sbc-hide-empty');
+        $SBC_settings['excluded_cats']			= get_option('sbc-excluded-cats');
+        $SBC_settings['search_text']			= get_option('sbc-search-text');
+        $SBC_settings['exclude_child']			= get_option('sbc-exclude-child');
+        $SBC_settings['raw_excluded_cats']		= get_option('sbc-selected-excluded');
+        $SBC_settings['sbc_style']				= get_option('sbc-style');
+        
+        add_option("sbc-settings", $SBC_settings);
+        
+        delete_option("sbc-focus");
+        delete_option("sbc-hide-empty");
+        delete_option("sbc-excluded-cats");
+        delete_option("sbc-search-text");
+        delete_option("sbc-selected-excluded");
+        delete_option("sbc-exclude-child");
+        delete_option("sbc-style");
+    }
+}
+register_activation_hook( __FILE__ , 'sbc_activate' );
 
 // Start the plugin
 if ( ! class_exists( 'SBC_Admin' ) ) {
@@ -94,47 +120,45 @@ if ( ! class_exists( 'SBC_Admin' ) ) {
 				check_admin_referer('sbc-updatesettings');
 				
 				// Get our new option values
-				$focus					= $_POST['focus'];
-				$hide_empty				= $_POST['hide-empty'];
-				$search_text			= $_POST['search-text'];
-				$exclude_child			= $_POST['exclude-child'];
-				$sbc_style				= $_POST['sbc-style'];
+                $SBC_settings                           = get_option('sbc-settings');
+				$SBC_settings['focus']					= mysql_real_escape_string($_POST['focus']);
+				$SBC_settings['hide_empty']				= $_POST['hide-empty'];
+				$SBC_settings['search_text']			= mysql_real_escape_string($_POST['search-text']);
+				$SBC_settings['exclude_child']			= $_POST['exclude-child'];
+				$SBC_settings['sbc_style']				= $_POST['sbc-style'];
 				
 				if(isset($_POST['post_category'])){
-					$raw_excluded_cats 		= $_POST['post_category'];
+					$SBC_settings['raw_excluded_cats'] 		= $_POST['post_category'];
 					
 					// Fix our excluded category return values
-					$fix					= $raw_excluded_cats;
+					$fix = $SBC_settings['raw_excluded_cats'];
 					array_unshift($fix, "1");
-					$excluded_cats			= implode(',',$fix);
+					$SBC_settings['excluded_cats']			= implode(',',$fix);
 				}
 				
 				// Make sure "$hide_empty" & "$exclude_child" are set right
-				if (empty($hide_empty)) $hide_empty = '0'; // 0 means false
-				if (empty($exclude_child)) $exclude_child = '0'; // 0 means false
-				if (empty($sbc_style)) $sbc_style = '0'; // 0 means false 
+				if (empty($SBC_settings['hide_empty'])) $SBC_settings['hide_empty'] = '0'; // 0 means false
+				if (empty($SBC_settings['exclude_child'])) $SBC_settings['exclude_child'] = '0'; // 0 means false
+				if (empty($SBC_settings['sbc_style'])) $SBC_settings['sbc_style'] = '0'; // 0 means false 
 				
 				// Update the DB with the new option values
-				update_option("sbc-focus", mysql_real_escape_string($focus));
-				update_option("sbc-hide-empty", $hide_empty);
-				update_option("sbc-selected-excluded", $raw_excluded_cats);
-				update_option("sbc-excluded-cats", $excluded_cats);
-				update_option("sbc-search-text", mysql_real_escape_string($search_text));
-				update_option("sbc-exclude-child", $exclude_child);
-				update_option("sbc-style", $sbc_style);
+				update_option("sbc-settings", $SBC_settings);
 			}
-
-			$focus					= get_option("sbc-focus");
-			$hide_empty				= get_option("sbc-hide-empty");
-			$search_text			= get_option("sbc-search-text");
-			$excluded_cats			= get_option("sbc-excluded-cats");
-			$exclude_child			= get_option("sbc-exclude-child");
-			$raw_excluded_cats 		= get_option("sbc-selected-excluded"); // For Admin Checklist
-			$sbc_style				= get_option("sbc-style");
+            
+            $SBC_settings           = get_option("sbc-settings");
+			$focus					= $SBC_settings['focus'];
+			$hide_empty				= $SBC_settings['hide_empty'];
+			$search_text			= $SBC_settings['search_text'];
+			$excluded_cats			= $SBC_settings['excluded_cats'];
+			$exclude_child			= $SBC_settings['exclude_child'];
+			$raw_excluded_cats 		= $SBC_settings['raw_excluded_cats'];
+			$sbc_style				= $SBC_settings['sbc_style'];
 			
 			?>
 			<div class="wrap">
+                <div id="icon-options-general" class="icon32"><br /></div>
 				<h2>Seach By Category Options</h2>
+                
 				<form action="" method="post" id="sbc-config">
 					<table class="form-table">
 						<?php if (function_exists('wp_nonce_field')) { wp_nonce_field('sbc-updatesettings'); } ?>
@@ -148,23 +172,23 @@ if ( ! class_exists( 'SBC_Admin' ) ) {
 						</tr>
 						<tr>
 							<th scope="row" valign="top"><label for="hide-empty">Hide categories with no posts?</label></th>
-							<td><input type="checkbox" name="hide-empty" id="hide-empty" value="1" <?php if ($hide_empty == '1') echo 'checked="checked"'; ?> /></td>
+							<td><input type="checkbox" name="hide-empty" id="hide-empty" value="1" <?php if ($hide_empty === '1') echo 'checked="checked"'; ?> /></td>
 						</tr>
 						<tr>
 							<th scope="row" valign="top"><label for="exclude-child">Exclude Child categories from list?</label></th>
-							<td><input type="checkbox" name="exclude-child" id="exclude-child" value="1" <?php if ($exclude_child == '1') echo 'checked="checked"'; ?> /></td>
+							<td><input type="checkbox" name="exclude-child" id="exclude-child" value="1" <?php if ($exclude_child === '1') echo 'checked="checked"'; ?> /></td>
 						</tr>
 						<tr>
 							<th scope="row" valign="top"><label for="sbc-style">Use the SBC Form styling?</label></th>
-							<td><input type="checkbox" name="sbc-style" id="sbc-style" value="1" <?php if ($sbc_style == '1') echo 'checked="checked"'; ?> /> <em>* Styling doesn't display correctly in IE7 and earlier *</em></td>
+							<td><input type="checkbox" name="sbc-style" id="sbc-style" value="1" <?php if ($sbc_style === '1') echo 'checked="checked"'; ?> /> <em>* Styling doesn't display correctly in IE7 and earlier *</em></td>
 						</tr>
 						<tr>
-							<th scope="row" valign="top"><label for="focus">Categories to exclude:</label></th>
+							<th scope="row" valign="top"><label>Categories to exclude:</label></th>
 							<td><ul><?php wp_category_checklist(0,0,$raw_excluded_cats); ?></ul></td>
 						</tr>
 					</table>
-					<br/>
-					<span class="submit" style="border: 0;"><input type="submit" name="submit" value="Save Settings" /></span>
+                    
+					<p class="submit"><input type="submit" id="submit" name="submit" class="button-primary" value="Save Changes" /></p>
 				</form>
 			</div>
 <?php		}
@@ -173,14 +197,15 @@ if ( ! class_exists( 'SBC_Admin' ) ) {
 
 
 // Base function
-function sbc() {	
-	$focus					= get_option("sbc-focus");
-	$hide_empty				= get_option("sbc-hide-empty");
-	$excluded_cats			= get_option("sbc-excluded-cats");
-	$search_text			= get_option("sbc-search-text");
+function sbc() {
+    
+    $SBC_settings           = get_option("sbc-settings");
+	$focus					= $SBC_settings['focus'];
+	$hide_empty				= $SBC_settings['hide_empty'];
+	$search_text			= $SBC_settings['search_text'];
 	$search_text_default 	= $search_text;
-	$exclude_child			= get_option("sbc-exclude-child");
-	
+	$excluded_cats			= $SBC_settings['excluded_cats'];
+	$exclude_child			= $SBC_settings['exclude_child'];	
 
 	if(is_category() && !is_tag() && !is_author() && !is_date()) $cat_id = get_cat_id(single_cat_title('' , false));
 
@@ -223,25 +248,25 @@ EOH;
 
 // Get results only from selected category
 function return_only_selected_category() {
-	if (isset($_POST['sbc-submit'])){
+	if (isset($_REQUEST['sbc-submit'])){
 		global $wp_query;
 		
-		$desired_cat = $_POST['cat'];
-		if ($desired_cat == '*') $desired_cat = '';
+		$desired_cat = $_REQUEST['cat'];
+		if($desired_cat === '0') $desired_cat = '';
 		
-		$excluded = get_categories('hide_empty=false&exclude={$desired_cat}');
+		$excluded = get_categories("hide_empty=false&exclude={$desired_cat}");
 		
-		$wp_query->query_vars['cat'] = '-' . $excluded;
+		$wp_query->query_vars['cat'] = "-{$excluded}";
 	}
 }
 
-$sbc_style = get_option("sbc-style");
-if($sbc_style == '1'){
+$sbc_settings = get_option("sbc-settings");
+if($sbc_settings['sbc_style'] === '1'){
 	// Add our styling
 	function style_insert() {
 		$current_path = get_option('siteurl').'/wp-content/plugins/'.basename(dirname(__FILE__));
 		
-		echo '<link href="'.$current_path.'/sbc-style.css" type="text/css" rel="stylesheet" />';
+		echo "<link href='{$current_path}/sbc-style.css' type='text/css' rel='stylesheet' />";
 	}
 
 	// insert custom stylesheet
