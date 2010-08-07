@@ -3,7 +3,7 @@ Contributors: Fire G
 Plugin link: http://fire-studios.com/blog/search-by-category/
 Tags: search, category, specify, results
 Requires at least: 2.5.1
-Tested up to: 3.0
+Tested up to: 3.0.1
 Stable tag: trunk
 
 Reconfigures search results to display results based off of category of posts.
@@ -13,6 +13,12 @@ Reconfigures search results to display results based off of category of posts.
 To help users find the posts they're looking for faster, this plugin allows them to search for articles or posts within certian categories, cutting back on the number of results the user needs to crawl through to find the article they want.
 
 **Change log**
+
+2.0
+ - Exclude from categories from "in all categories"
+ - No drop-down menu when using "only_cat" parameter
+ - Added sbc() controls
+ - Added shortcode controls
 
 1.5
  - Converted options storage from seperate rows to one array
@@ -77,6 +83,19 @@ or
 <pre>
 [sbc]
 </pre>
+
+== Customizations ==
+
+_List of arguments in order_
+* focus - replaces "In all categories"
+* hide_empty - 1 means true, 0 means false
+* search_text - replaces "Search  for..."
+* only_cat - category name/slug/ID [removes dropdown list]
+* excluded_cats - must be category IDs seperated by commas (ex: 1,2,3) / removes categories from dropdown list
+* exclude_child - 1 means true, 0 means false
+* inall_exclude - must be category IDs seperated by commas (ex: 1,2,3) / removes categories from "in all categories" and dropdown list
+
+If you don't want to customize a setting, use: null, 0, or ''.
 
 == Screenshots ==
 

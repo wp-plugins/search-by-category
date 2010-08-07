@@ -3,13 +3,19 @@
 Plugin Name: Search By Category
 Plugin URI: http://fire-studios.com/blog/search-by-category/
 Description: Reconfigures search results to display results based on category of posts.
-Version: 1.5
+Version: 2.0
 Author: Fire G
 Author URI: http://fire-studios.com/blog/
 */
 
 /* 
 Change log
+
+2.0
+ - Exclude from categories from "in all categories"
+ - No drop-down menu when using "only_cat" parameter
+ - Added sbc() controls
+ - Added shortcode controls
 
 1.5
  - Converted options storage from seperate rows to one array
@@ -69,12 +75,13 @@ $SBC_settings['search_text']			= 'Search For...';
 $SBC_settings['exclude_child']			= '0'; // 0 means false
 $SBC_settings['raw_excluded_cats']		= array();
 $SBC_settings['sbc_style']				= '1';
+$SBC_settings['inall_exclude']          = array();
 
 function sbc_activate(){
     global $SBC_settings;
     
     if(!get_option('sbc-focus')) {
-        add_option("sbc-settings", $SBC_settings);
+        update_option("sbc-settings", $SBC_settings);
     }
     else {
         // Upgrade from 1.x to 1.5
@@ -126,9 +133,10 @@ if ( ! class_exists( 'SBC_Admin' ) ) {
 				$SBC_settings['search_text']			= mysql_real_escape_string($_POST['search-text']);
 				$SBC_settings['exclude_child']			= $_POST['exclude-child'];
 				$SBC_settings['sbc_style']				= $_POST['sbc-style'];
-				
+                $SBC_settings['inall_exclude']          = $_POST['inall_exclude'];
+                
 				if(isset($_POST['post_category'])){
-					$SBC_settings['raw_excluded_cats'] 		= $_POST['post_category'];
+					$SBC_settings['raw_excluded_cats']      = $_POST['post_category'];
 					
 					// Fix our excluded category return values
 					$fix = $SBC_settings['raw_excluded_cats'];
@@ -136,7 +144,7 @@ if ( ! class_exists( 'SBC_Admin' ) ) {
 					$SBC_settings['excluded_cats']			= implode(',',$fix);
 				}
 				
-				// Make sure "$hide_empty" & "$exclude_child" are set right
+				// Make sure checkboxes are set right
 				if (empty($SBC_settings['hide_empty'])) $SBC_settings['hide_empty'] = '0'; // 0 means false
 				if (empty($SBC_settings['exclude_child'])) $SBC_settings['exclude_child'] = '0'; // 0 means false
 				if (empty($SBC_settings['sbc_style'])) $SBC_settings['sbc_style'] = '0'; // 0 means false 
@@ -153,6 +161,7 @@ if ( ! class_exists( 'SBC_Admin' ) ) {
 			$exclude_child			= $SBC_settings['exclude_child'];
 			$raw_excluded_cats 		= $SBC_settings['raw_excluded_cats'];
 			$sbc_style				= $SBC_settings['sbc_style'];
+            $inall_exclude          = $SBC_settings['inall_exclude'];
 			
 			?>
 			<div class="wrap">
@@ -160,8 +169,8 @@ if ( ! class_exists( 'SBC_Admin' ) ) {
 				<h2>Seach By Category Options</h2>
                 
 				<form action="" method="post" id="sbc-config">
+                <?php if (function_exists('wp_nonce_field')) { wp_nonce_field('sbc-updatesettings'); } ?>
 					<table class="form-table">
-						<?php if (function_exists('wp_nonce_field')) { wp_nonce_field('sbc-updatesettings'); } ?>
 						<tr>
 							<th scope="row" valign="top"><label for="search-text">Display text in the search box:</label></th>
 							<td><input type="text" name="search-text" id="search-text" class="regular-text" value="<?php echo $search_text; ?>"/></td>
@@ -186,6 +195,11 @@ if ( ! class_exists( 'SBC_Admin' ) ) {
 							<th scope="row" valign="top"><label>Categories to exclude:</label></th>
 							<td><ul><?php wp_category_checklist(0,0,$raw_excluded_cats); ?></ul></td>
 						</tr>
+                        <tr>
+							<th scope="row" valign="top"><label>Categories to always exclude from search results:</label></th>
+							<td><input type="text" name="inall_exclude" id="inall_exclude" class="regular-text" value="<?php echo $inall_exclude; ?>"/><p><em><strong>Insert categories as comma seperated IDs (EX: 1,3,15,7)</strong></em></p></td>
+                            <td><span class="description">Sometimes you don't want users to see posts from every category, categories listed here will be excluded from processing if users don't pick a specific category from the dropdown menu.</span></td>
+                        </tr>
 					</table>
                     
 					<p class="submit"><input type="submit" id="submit" name="submit" class="button-primary" value="Save Changes" /></p>
@@ -197,24 +211,23 @@ if ( ! class_exists( 'SBC_Admin' ) ) {
 
 
 // Base function
-function sbc() {
+function sbc($focus = null, $hide_empty = null, $search_text = null, $only_cat = null, $excluded_cats = null, $exclude_child = null, $inall_exclude = null) {
     
     $SBC_settings           = get_option("sbc-settings");
-	$focus					= $SBC_settings['focus'];
-	$hide_empty				= $SBC_settings['hide_empty'];
-	$search_text			= $SBC_settings['search_text'];
-	$search_text_default 	= $search_text;
-	$excluded_cats			= $SBC_settings['excluded_cats'];
-	$exclude_child			= $SBC_settings['exclude_child'];	
-
-	if(is_category() && !is_tag() && !is_author() && !is_date()) $cat_id = get_cat_id(single_cat_title('' , false));
-
-	if (is_search()) {
-		$cat_id = $_GET['cat'] ? (int) $_GET['cat'] : 0;
-		$search_text = esc_attr(apply_filters('the_search_query', get_search_query()));
-	}
-	
-	$settings = array('show_option_all' => $focus,
+    
+    // Set default values of arguments are not set
+    $focus                  = !$focus ? $SBC_settings['focus'] : $focus;
+    $hide_empty 	        = !$hide_empty ? $SBC_settings['hide_empty'] : $hide_empty;
+    $search_text            = !$search_text ? $SBC_settings['search_text'] : $search_text;
+    $search_text_default    = $search_text;
+    $excluded_cats          = !$excluded_cats ? $SBC_settings['excluded_cats'] : $excluded_cats;
+    $exclude_child          = !$exclude_child ? $SBC_settings['exclude_child'] : $exclude_child;
+    $inall_exclude          = !$inall_exclude ? ','.$SBC_settings['inall_exclude'] : $inall_exclude;
+    
+    if(!$only_cat){
+        // if $only_cat is still null, use settings from admin menu
+        $exclude_setting = $excluded_cats.$inall_exclude;
+        $settings = array('show_option_all' => $focus,
 						'show_option_none' => '',
 						'orderby' => 'name', 
 						'order' => 'ASC',
@@ -222,22 +235,37 @@ function sbc() {
 						'show_count' => 0,
 						'hide_empty' => $hide_empty, 
 						'child_of' => 0,
-						'exclude' => "'".$excluded_cats."'",
+						'exclude' => $exclude_setting,
 						'echo' => 0,
 						'selected' => $cat_id,
 						'hierarchical' => 1, 
 						'name' => 'cat',
 						'class' => 'postform',
 						'depth' => $exclude_child);
-	$list = wp_dropdown_categories($settings); 
+        $input = wp_dropdown_categories($settings);
+        $input_class = 'multi-cat';
+    }
+    else{
+        $cat_id = !is_numeric($only_cat) ? get_cat_ID($only_cat) : $only_cat; // if it's not an ID, try getting it via the name
+        $cat_id = ($cat_id === 0) ? get_category_by_slug($only_cat) : $cat_id; // if name doesn't work try it as a slug
+        $input = "<input type='hidden' name='cat' id='cat' value='{$cat_id}' />\r\n";
+        $input_class = 'single-cat';
+    }
+    
+	if(is_category() && !is_tag() && !is_author() && !is_date()) $cat_id = get_cat_id(single_cat_title('' , false));
+
+	if(is_search()){
+		$cat_id = $_GET['cat'] ? (int) $_GET['cat'] : 0;
+		$search_text = esc_attr(apply_filters('the_search_query', get_search_query()));
+	}
 	
 	$blog_url = get_bloginfo("url");
 	
 	$form = <<< EOH
 	<div id="sbc">
 		<form method="get" id="sbc-search" action="{$blog_url}">
-			<input type="text" value="{$search_text}" name="s" id="s" onblur="if (this.value == '') {this.value = '{$search_text_default}';}"  onfocus="if (this.value == '{$search_text_default}') {this.value = '';}" />
-			{$list}
+			<input type="text" value="{$search_text}" name="s" id="s" class="{$input_class}" onblur="if (this.value == '') {this.value = '{$search_text_default}';}"  onfocus="if (this.value == '{$search_text_default}') {this.value = '';}" />
+			{$input}
 			<input type="submit" id="sbc-submit" value="Search" />
 		</form>
 	</div>	
@@ -246,13 +274,29 @@ EOH;
 	echo $form;
 }
 
+function sbc_shortcode($atts){
+    extract( shortcode_atts(array(
+        'focus' => null,
+        'hide_empty' => null,
+        'search_text' => null,
+        'only_cat' => null,
+        'excluded_cats' => null,
+        'exclude_child' => null,
+        'inall_exclude' => null
+    ), $atts) );
+    
+    echo 'bam: '; print_r($focus);
+    
+    sbc($focus, $hide_empty, $search_text, $only_cat, $excluded_cats, $exclude_child, $inall_exclude);
+}
+
 // Get results only from selected category
 function return_only_selected_category() {
 	if (isset($_REQUEST['sbc-submit'])){
-		global $wp_query;
+		global $wp_query; $SBC_settings = get_option('sbc-settings');
 		
 		$desired_cat = $_REQUEST['cat'];
-		if($desired_cat === '0') $desired_cat = '';
+		if($desired_cat === '0') $desired_cat = $SBC_settings['inall_exclude'];
 		
 		$excluded = get_categories("hide_empty=false&exclude={$desired_cat}");
 		
@@ -280,5 +324,5 @@ add_filter('pre_get_posts', 'return_only_selected_category');
 add_action('admin_menu', array('SBC_Admin','add_config_page'));
 
 // Allow use of [sbc]
-add_shortcode('sbc', 'sbc');
+add_shortcode('sbc', 'sbc_shortcode');
 ?>
