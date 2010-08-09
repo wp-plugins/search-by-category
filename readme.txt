@@ -69,9 +69,9 @@ Alpha 1
 == Installation ==
 
 1. Download, unzip and upload to your WordPress plugins directory
-2. activate the plugin within you WordPress Administration
-3. Go to Settings > Search By Category
-4. Use the following code in your Theme:
+1. activate the plugin within you WordPress Administration
+1. Go to Settings > Search By Category
+1. Use the following code in your Theme:
 <pre>
 &lt;?php if(function_exists('sbc')){ 
 	sbc();
@@ -87,13 +87,13 @@ or
 == Customizations ==
 
 _List of arguments in order_
-* focus - replaces "In all categories"
-* hide_empty - 1 means true, 0 means false
-* search_text - replaces "Search  for..."
-* only_cat - category name/slug/ID [removes dropdown list]
-* excluded_cats - must be category IDs seperated by commas (ex: 1,2,3) / removes categories from dropdown list
-* exclude_child - 1 means true, 0 means false
-* inall_exclude - must be category IDs seperated by commas (ex: 1,2,3) / removes categories from "in all categories" and dropdown list
+* focus - replaces "In all categories" <br />
+* hide_empty - 1 means true, 0 means false <br />
+* search_text - replaces "Search  for..." <br />
+* only_cat - category name/slug/ID [removes dropdown list] <br />
+* excluded_cats - must be category IDs seperated by commas (ex: 1,2,3) / removes categories from dropdown list <br />
+* exclude_child - 1 means true, 0 means false <br />
+* inall_exclude - must be category IDs seperated by commas (ex: 1,2,3) / removes categories from "in all categories" and dropdown list <br />
 
 If you don't want to customize a setting, use: null, 0, or ''.
 

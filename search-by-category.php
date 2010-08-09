@@ -3,13 +3,16 @@
 Plugin Name: Search By Category
 Plugin URI: http://fire-studios.com/blog/search-by-category/
 Description: Reconfigures search results to display results based on category of posts.
-Version: 2.0
+Version: 2.0.1
 Author: Fire G
 Author URI: http://fire-studios.com/blog/
 */
 
 /* 
 Change log
+
+2.0.1
+ - Removes leftover debug code
 
 2.0
  - Exclude from categories from "in all categories"
@@ -284,8 +287,6 @@ function sbc_shortcode($atts){
         'exclude_child' => null,
         'inall_exclude' => null
     ), $atts) );
-    
-    echo 'bam: '; print_r($focus);
     
     sbc($focus, $hide_empty, $search_text, $only_cat, $excluded_cats, $exclude_child, $inall_exclude);
 }
