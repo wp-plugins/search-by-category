@@ -3,7 +3,7 @@
 Plugin Name: Search By Category
 Plugin URI: http://fire-studios.com/blog/search-by-category/
 Description: Reconfigures search results to display results based on category of posts.
-Version: 2.0.1
+Version: 2.0.2
 Author: Fire G
 Author URI: http://fire-studios.com/blog/
 */
