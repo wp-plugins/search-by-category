@@ -14,6 +14,12 @@ To help users find the posts they're looking for faster, this plugin allows them
 
 **Change log**
 
+2.0.2
+ - Fixed inall_exclude use case failure
+
+2.0.1
+ - Removes leftover debug code
+
 2.0
  - Exclude from categories from "in all categories"
  - No drop-down menu when using "only_cat" parameter

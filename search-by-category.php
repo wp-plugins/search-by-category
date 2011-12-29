@@ -11,6 +11,9 @@ Author URI: http://fire-studios.com/blog/
 /* 
 Change log
 
+2.0.2
+ - Fixed inall_exclude use case failure
+
 2.0.1
  - Removes leftover debug code
 
@@ -293,7 +296,7 @@ function sbc_shortcode($atts){
 
 // Get results only from selected category
 function return_only_selected_category() {
-	if (isset($_REQUEST['sbc-submit'])){
+	if ( isset($_REQUEST['s']) && isset($_REQUEST['cat']) ){
 		global $wp_query; $SBC_settings = get_option('sbc-settings');
 		
 		$desired_cat = $_REQUEST['cat'];
