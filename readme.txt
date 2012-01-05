@@ -14,6 +14,9 @@ To help users find the posts they're looking for faster, this plugin allows them
 
 **Change log**
 
+2.0.3
+ - Fixed automatic category reselect
+
 2.0.2
  - Fixed inall_exclude use case failure
 

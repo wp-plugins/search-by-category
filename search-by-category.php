@@ -3,13 +3,16 @@
 Plugin Name: Search By Category
 Plugin URI: http://fire-studios.com/blog/search-by-category/
 Description: Reconfigures search results to display results based on category of posts.
-Version: 2.0.2
+Version: 2.0.3
 Author: Fire G
 Author URI: http://fire-studios.com/blog/
 */
 
 /* 
 Change log
+
+2.0.3
+ - Fixed automatic category reselect
 
 2.0.2
  - Fixed inall_exclude use case failure
@@ -231,6 +234,7 @@ function sbc($focus = null, $hide_empty = null, $search_text = null, $only_cat =
     $inall_exclude          = !$inall_exclude ? ','.$SBC_settings['inall_exclude'] : $inall_exclude;
     
     if(!$only_cat){
+        $cat_id = (int)$_GET['cat'];
         // if $only_cat is still null, use settings from admin menu
         $exclude_setting = $excluded_cats.$inall_exclude;
         $settings = array('show_option_all' => $focus,
