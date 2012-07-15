@@ -1,9 +1,9 @@
 === Search By Category ===
 Contributors: Fire G
-Plugin link: http://fire-studios.com/blog/search-by-category/
+Plugin link: https://github.com/JonathanWolfe/Search-By-Category
 Tags: search, category, specify, results
 Requires at least: 2.5.1
-Tested up to: 3.0.1
+Tested up to: 3.4.1
 Stable tag: trunk
 
 Reconfigures search results to display results based off of category of posts.
